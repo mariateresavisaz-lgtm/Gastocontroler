@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gastocontroler - Control de Gastos Mensuales</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <div class="contenedor">
+    <!-- HEADER CON TEMA OSCURO -->
+    <div class="header">
+      <h1>💰 Gastocontroler</h1>
+      <button class="btn-tema" onclick="toggleTema()" title="Cambiar tema">
+        <span id="iconoTema">🌙</span>
+      </button>
+    </div>
+
+    <!-- TARJETAS DE RESUMEN -->
+    <div class="tarjetas">
+      <div class="tarjeta">
+        <h2>Ingresos</h2>
+        <p id="totalIngresos" class="ingreso-grande">0 €</p>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Gastos</h2>
+        <p id="totalGastos" class="gasto-grande">0 €</p>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Saldo</h2>
+        <p id="saldo">0 €</p>
+      </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="bloque">
+      <h2>🔍 Filtros</h2>
+      <div class="grid-form">
+        <input type="date" id="filtroFechaInicio" placeholder="Fecha inicio" />
+        <input type="date" id="filtroFechaFin" placeholder="Fecha fin" />
+        <select id="filtroCategoria">
+          <option value="">Todas las categorías</option>
+          <option value="Nómina">Nómina</option>
+          <option value="Alimentación">Alimentación</option>
+          <option value="Transporte">Transporte</option>
+          <option value="Vivienda">Vivienda</option>
+          <option value="Ocio">Ocio</option>
+          <option value="Salud">Salud</option>
+          <option value="Compras">Compras</option>
+          <option value="Suscripciones">Suscripciones</option>
+          <option value="Otros">Otros</option>
+        </select>
+        <select id="filtroTipo">
+          <option value="">Todos los tipos</option>
+          <option value="ingreso">Ingresos</option>
+          <option value="gasto">Gastos</option>
+        </select>
+      </div>
+      <button onclick="aplicarFiltros()" class="btn-filtrar">Aplicar filtros</button>
+      <button onclick="limpiarFiltros()" class="btn-limpiar">Limpiar filtros</button>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="bloque">
+      <h2>📊 Gráficos</h2>
+      <div class="grid-graficos">
+        <div class="grafico-contenedor">
+          <h3>Gastos por Categoría</h3>
+          <canvas id="graficoGastosCategorias"></canvas>
+        </div>
+        <div class="grafico-contenedor">
+          <h3>Ingresos vs Gastos</h3>
+          <canvas id="graficoIngresosGastos"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPORTAR EXCEL -->
+    <div class="bloque">
+      <h2>📥 Importar Excel del banco</h2>
+      <p>El Excel debe tener columnas parecidas a: <strong>Fecha</strong>, <strong>Concepto</strong> o <strong>Descripción</strong>, e <strong>Importe</strong>.</p>
+
+      <input type="file" id="archivoExcel" accept=".xlsx, .xls, .csv" />
+      <button class="btn-importar" onclick="importarExcel()">Importar movimientos</button>
+
+      <div class="aviso">
+        Los importes negativos se guardarán como gastos. Los importes positivos se guardarán como ingresos.
+      </div>
+    </div>
+
+    <!-- AÑADIR MOVIMIENTO MANUAL -->
+    <div class="bloque">
+      <h2>➕ Añadir movimiento manual</h2>
+
+      <div class="grid-form">
+        <input type="date" id="fecha" />
+
+        <select id="tipo">
+          <option value="ingreso">Ingreso</option>
+          <option value="gasto">Gasto</option>
+        </select>
+
+        <select id="categoria">
+          <option value="Nómina">Nómina</option>
+          <option value="Alimentación">Alimentación</option>
+          <option value="Transporte">Transporte</option>
+          <option value="Vivienda">Vivienda</option>
+          <option value="Ocio">Ocio</option>
+          <option value="Salud">Salud</option>
+          <option value="Compras">Compras</option>
+          <option value="Suscripciones">Suscripciones</option>
+          <option value="Otros">Otros</option>
+        </select>
+
+        <input type="text" id="descripcion" placeholder="Descripción" />
+
+        <input type="number" id="importe" placeholder="Importe en euros" />
+      </div>
+
+      <button onclick="agregarMovimiento()">Añadir movimiento</button>
+    </div>
+
+    <!-- RESUMEN POR CATEGORÍA -->
+    <div class="bloque">
+      <h2>📈 Resumen por categoría</h2>
+      <div id="resumenCategorias"></div>
+    </div>
+
+    <!-- EXPORTAR DATOS -->
+    <div class="bloque">
+      <h2>💾 Exportar datos</h2>
+      <button class="btn-exportar" onclick="exportarExcel()">📥 Descargar Excel</button>
+    </div>
+
+    <!-- HISTORIAL DE MOVIMIENTOS -->
+    <div class="bloque">
+      <h2>📋 Historial de movimientos</h2>
+
+      <button class="btn-borrar" onclick="borrarTodo()">🗑️ Borrar todos los datos</button>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Categoría</th>
+            <th>Descripción</th>
+            <th>Importe</th>
+            <th>Eliminar</th>
+          </tr>
+        </thead>
+        <tbody id="tablaMovimientos"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
